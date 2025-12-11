@@ -1,0 +1,19 @@
+# YouTube切り抜きツール - 依存パッケージ
+
+# データ取得
+yt-dlp>=2024.0.0
+youtube-transcript-api>=0.6.0
+
+# データ処理・解析
+pandas>=2.0.0
+numpy>=1.24.0
+
+# 可視化
+matplotlib>=3.7.0
+plotly>=5.14.0
+
+# Web UI
+streamlit>=1.28.0
+
+# ユーティリティ
+python-dateutil>=2.8.0
