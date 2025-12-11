@@ -39,6 +39,12 @@ col1, col2 = st.sidebar.columns(2)
 fetch_chat = col1.checkbox("チャット取得", value=True)
 fetch_subtitle = col2.checkbox("字幕取得", value=True)
 
+use_local_data = st.sidebar.checkbox(
+    "既存データを使用",
+    value=False,
+    help="dataディレクトリにある既存のデータファイルを使用します"
+)
+
 # 解析パラメータ
 st.sidebar.subheader("2. 解析パラメータ")
 bin_size = st.sidebar.slider("コメント集計間隔（秒）", 5, 60, 10)
@@ -82,8 +88,32 @@ if run_analysis and video_url:
 
         # データ取得
         with st.spinner("データを取得中..."):
-            # チャットデータ取得
-            if fetch_chat:
+            # 既存データを使用する場合
+            if use_local_data:
+                st.info("📂 既存データを読み込み中...")
+
+                # チャットデータ
+                chat_file = Path(f"data/{video_id}_chat.json")
+                if chat_file.exists():
+                    st.success(f"✅ チャットデータを発見: {chat_file}")
+                    st.session_state.chat_df = DataParser.load_and_parse_chat(chat_file)
+                    if st.session_state.chat_df is not None and not st.session_state.chat_df.empty:
+                        st.write(f"📊 コメント数: {len(st.session_state.chat_df)}件")
+                else:
+                    st.warning(f"⚠️ チャットデータが見つかりません: {chat_file}")
+
+                # 字幕データ
+                subtitle_file = Path(f"data/{video_id}_subtitle.json")
+                if subtitle_file.exists():
+                    st.success(f"✅ 字幕データを発見: {subtitle_file}")
+                    st.session_state.subtitle_df = DataParser.load_and_parse_subtitle(subtitle_file)
+                    if st.session_state.subtitle_df is not None and not st.session_state.subtitle_df.empty:
+                        st.write(f"📊 字幕数: {len(st.session_state.subtitle_df)}件")
+                else:
+                    st.warning(f"⚠️ 字幕データが見つかりません: {subtitle_file}")
+
+            # 新規取得する場合
+            elif fetch_chat:
                 with st.expander("📥 チャットデータを取得中...", expanded=True):
                     chat_file = chat_fetcher.fetch_chat(video_url)
 
@@ -100,8 +130,8 @@ if run_analysis and video_url:
                     else:
                         st.error("❌ チャットデータの取得に失敗しました（ライブ配信のアーカイブではない可能性があります）")
 
-            # 字幕データ取得
-            if fetch_subtitle:
+            # 字幕データ取得（新規取得の場合のみ）
+            if fetch_subtitle and not use_local_data:
                 with st.expander("📥 字幕データを取得中...", expanded=True):
                     subtitle_fetcher = SubtitleFetcher()
                     subtitle_file = subtitle_fetcher.fetch_subtitle(video_id)

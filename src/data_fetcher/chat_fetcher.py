@@ -76,6 +76,8 @@ class ChatFetcher:
                 "--write-subs",
                 "--sub-lang", "live_chat",
                 "--sub-format", "json3",
+                "--no-check-certificate",
+                "--proxy", "",
                 "-o", str(self.output_dir / f"{video_id}"),
                 f"https://www.youtube.com/watch?v={video_id}"
             ]
@@ -88,7 +90,18 @@ class ChatFetcher:
             )
 
             if result.returncode != 0:
-                print(f"エラー: yt-dlp実行失敗\n{result.stderr}")
+                stderr = result.stderr
+                if "Failed to resolve" in stderr or "Unable to connect" in stderr:
+                    print(f"エラー: ネットワーク接続エラー")
+                    print(f"ヒント: インターネット接続を確認してください")
+                    print(f"詳細: {stderr[:200]}...")
+                elif "Private video" in stderr or "Video unavailable" in stderr:
+                    print(f"エラー: 動画が非公開または利用できません")
+                elif "does not have live chat" in stderr or "Subtitles are disabled" in stderr:
+                    print(f"エラー: この動画にはライブチャットリプレイがありません")
+                    print(f"ヒント: ライブ配信のアーカイブのみチャットリプレイを取得できます")
+                else:
+                    print(f"エラー: yt-dlp実行失敗\n{stderr}")
                 return None
 
             # 生成されたファイルを確認
