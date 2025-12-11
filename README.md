@@ -26,8 +26,24 @@ pip install -r requirements.txt
 
 ## 使い方
 
+### Streamlit UIを使用
+
 ```bash
 streamlit run app.py
+```
+
+ブラウザで開いたら：
+1. サイドバーでYouTube URLを入力
+2. 「既存データを使用」チェックボックスで既存データを利用可能
+3. 解析パラメータを調整
+4. 「解析開始」ボタンをクリック
+
+### コマンドラインでテスト
+
+```bash
+# モックデータを生成してテスト
+python3 create_mock_data.py
+python3 test_analysis.py
 ```
 
 ## プロジェクト構成
@@ -36,20 +52,56 @@ streamlit run app.py
 clip-sens-claude/
 ├── requirements.txt          # 依存パッケージ
 ├── README.md                 # プロジェクト説明
+├── app.py                   # Streamlitアプリ
+├── create_mock_data.py      # モックデータ生成
+├── test_analysis.py         # テストスクリプト
 ├── src/
 │   ├── data_fetcher/        # データ取得モジュール
 │   │   ├── chat_fetcher.py  # yt-dlpでチャット取得
 │   │   └── subtitle_fetcher.py  # youtube-transcript-apiで字幕取得
 │   ├── analyzer/            # 解析モジュール
 │   │   ├── comment_analyzer.py  # コメント解析
-│   │   └── subtitle_analyzer.py # 字幕解析
+│   │   ├── subtitle_analyzer.py # 字幕解析
+│   │   └── clip_generator.py    # 切り抜き候補生成
 │   ├── visualizer/          # 可視化モジュール
 │   │   └── charts.py
 │   └── utils/               # ユーティリティ
 │       └── data_parser.py
-├── app.py                   # Streamlitアプリ
 └── data/                    # データ保存用
 ```
+
+## 注意事項
+
+- ライブ配信のアーカイブのみチャットリプレイを取得できます
+- 字幕は自動生成または手動字幕が必要です
+- 初回実行時はデータ取得に時間がかかります
+- ネットワーク環境によってはデータ取得に失敗する場合があります
+  - その場合は「既存データを使用」オプションを使用してください
+  - または `create_mock_data.py` でテストデータを生成できます
+
+## テスト
+
+```bash
+# モックデータを生成
+python3 create_mock_data.py
+
+# データ解析をテスト
+python3 test_analysis.py
+```
+
+## トラブルシューティング
+
+### yt-dlpでネットワークエラーが発生する
+
+ネットワーク接続を確認してください。プロキシ環境の場合は、環境変数を設定する必要がある場合があります。
+
+### チャットリプレイが見つからない
+
+この動画がライブ配信のアーカイブであることを確認してください。通常の動画にはチャットリプレイがありません。
+
+### 既存データを使用したい
+
+サイドバーで「既存データを使用」チェックボックスをオンにして、`data/`ディレクトリに対象のビデオIDのデータファイルがあることを確認してください。
 
 ## ライセンス
 
